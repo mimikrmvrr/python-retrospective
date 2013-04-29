@@ -1,50 +1,45 @@
 class Person:
     persons = []
 
-    def __init__(self, name, birth_year, gender, **kwargs):
+    def __init__(self, name, birth_year, gender, father=None, mother=None):
         self.name = name
         self.birth_year = birth_year
         self.gender = gender
-        self.mother = kwargs.get('mother')
-        self.father = kwargs.get('father')
+        self.mother = mother
+        self.father = father
+        self.children_set = set()
         self.__class__.persons.append(self)
+        self.add_to_parent(self.father)
+        self.add_to_parent(self.mother)
 
-    def get_siblings_by_common_parent(self, parent):
-        siblings = []
-        if parent:
-            for person in self.__class__.persons:
-                if parent in person.get_parents() and person is not self:
-                    siblings.append(person)
-        return (list(set(siblings)))
+    def add_to_parent(self, parent):
+        if parent is not None:
+            parent.children_set.add(self)
 
     def get_parents(self):
-        return (self.mother, self.father)
+        return [self.mother, self.father]
 
-    def get_siblings(self):
-        siblings = []
-        parents = [self.mother, self.father]
+    def get_siblings(self, gender=None):
+        siblings = set()
+        parents = self.get_parents()
         for parent in parents:
-            siblings = self.get_siblings_by_common_parent(parent) + siblings
-        return (list(set(siblings)))
+            siblings.update(parent.children(gender))
+
+        if self in siblings:
+            siblings.remove(self)
+        return list(siblings)
 
     def get_sisters(self):
-        return list(filter(lambda sibling: sibling.gender == 'F',
-                           self.get_siblings()))
+        return self.get_siblings('F')
 
     def get_brothers(self):
-        return list(filter(lambda sibling: sibling.gender == 'M',
-                           self.get_siblings()))
+        return self.get_siblings('M')
 
-    def children(self, **kwargs):
-        genders = ['F', 'M']
-        children_list = []
-        if kwargs:
-            genders = [kwargs.get('gender')]
-        for person in self.__class__.persons:
-            if self in person.get_parents():
-                children_list.append(person)
-        return list(filter(lambda child: child.gender in genders,
-                           children_list))
+    def children(self, gender=None):
+        children = self.children_set
+        if gender is not None:
+            return [child for child in children if child.gender == gender]
+        return list(children)
 
     def is_direct_successor(self, another_person):
         return another_person in self.children()
