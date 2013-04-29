@@ -35,28 +35,30 @@ class TicTacToeBoard:
             raise InvalidKey
         return self.board[column][row - 1]
 
-    def __setitem__(self, position, value):
-        column = self.column(position)
-        try:
-            row = int(self.row(position))
-        except ValueError as data:
-            raise InvalidKey
+    def check_for_exception(self, column, row, value):
         if column not in self.board.keys() or row not in (1, 2, 3):
             raise InvalidKey
         elif self.board[column][row-1]:
             raise InvalidMove
         elif value not in ('X', 'O'):
             raise InvalidValue
-        else:
-            if self.turn:
-                if self.order[self.turn % 2] == value:
-                    self.make_move(value, column, row)
-                else:
-                    raise NotYourTurn
-            else:
-                if value != self.order[0]:
-                    self.order = self.order[::-1]
+
+    def __setitem__(self, position, value):
+        column = self.column(position)
+        try:
+            row = int(self.row(position))
+        except ValueError as data:
+            raise InvalidKey
+        self.check_for_exception(column, row, value)
+        if self.turn:
+            if self.order[self.turn % 2] == value:
                 self.make_move(value, column, row)
+            else:
+                raise NotYourTurn
+
+        if value != self.order[0]:
+            self.order = self.order[::-1]
+        self.make_move(value, column, row)
 
     def __str__(self):
         result_str = '\n'
