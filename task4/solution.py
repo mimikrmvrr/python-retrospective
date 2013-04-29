@@ -50,17 +50,13 @@ class TicTacToeBoard:
         else:
             if self.turn:
                 if self.order[self.turn % 2] == value:
-                    self.board[column][row - 1] = value
-                    self.turn += 1
-                    self.update_status(value, column, row)
+                    self.make_move(value, column, row)
                 else:
                     raise NotYourTurn
             else:
                 if value != self.order[0]:
                     self.order = self.order[::-1]
-                self.board[column][row - 1] = value
-                self.turn += 1
-                self.update_status(value, column, row)
+                self.make_move(value, column, row)
 
     def __str__(self):
         result_str = '\n'
@@ -83,20 +79,15 @@ class TicTacToeBoard:
             return False
         if (self.board[column].count(player) == 3):
             return True
+        cur_row = [self.board[col][row - 1] for col in self.board.keys()]
+        if (cur_row.count(player) == 3):
+            return True
+        elif d1[column] == row - 1:
+            return self.check(d1, row, column, player)
+        elif d2[column] == row - 1:
+            return self.check(d2, row, column, player)
         else:
-            cur_row = [self.board[col][row - 1] for col in self.board.keys()]
-            if (cur_row.count(player) == 3):
-                return True
-            elif d1[column] == row - 1:
-                diag = [self.board[col][d1[col]] for col in d1.keys()]
-                if diag.count(player) == 3:
-                    return True
-            elif d2[column] == row - 1:
-                diag = [self.board[col][d2[col]] for col in d2.keys()]
-                if diag.count(player) == 3:
-                    return True
-            else:
-                return False
+            return False
 
     def update_status(self, player, column, row):
         if self.status:
@@ -109,5 +100,14 @@ class TicTacToeBoard:
     def game_status(self):
         if self.status:
             return self.status
-        else:
-            return "Game in progress."
+        return "Game in progress."
+
+    def make_move(self, value, column, row):
+        self.board[column][row - 1] = value
+        self.turn += 1
+        self.update_status(value, column, row)
+
+    def check(self, d, row, col, player):
+        diag = [self.board[col][d[col]] for col in d.keys()]
+        if diag.count(player) == 3:
+            return True
